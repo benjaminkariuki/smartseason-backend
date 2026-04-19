@@ -1,19 +1,22 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\FieldController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
+// Public route
+Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+// Protected routes (will require Bearer Token)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::patch('/fields/{field}', [FieldController::class, 'update']);
+
+    // Admin-only user management
+   Route::prefix('admin')->group(function () {
+        Route::get('/agents', [\App\Http\Controllers\Api\Admin\UserController::class, 'index']);
+        Route::post('/agents', [\App\Http\Controllers\Api\Admin\UserController::class, 'store']);
+        Route::patch('/agents/{user}/status', [\App\Http\Controllers\Api\Admin\UserController::class, 'updateStatus']);
+    });
+    // We will add Field management routes here in the NEXT step
 });
