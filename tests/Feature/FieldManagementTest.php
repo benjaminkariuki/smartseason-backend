@@ -86,4 +86,33 @@ class FieldManagementTest extends TestCase
             'agent_id' => null, // Verify it saved as null
         ]);
     }
+
+    public function test_agent_cannot_edit_restricted_fields(): void
+{
+    // Arrange: Create agent and a field
+    $agent = User::factory()->create(['role' => 'field_agent']);
+    $field = \App\Models\Field::factory()->create([
+        'agent_id' => $agent->id,
+        'name' => 'Original Name',
+        'crop_type' => 'Original Crop'
+    ]);
+
+    // Act: Agent attempts to change name and crop_type
+    $this->actingAs($agent)->patchJson("/api/fields/{$field->id}", [
+        'name' => 'Hacked Name',
+        'crop_type' => 'Hacked Crop',
+        'current_stage' => 'growing', // Allowed
+        'notes' => 'Updated notes'     // Allowed
+    ]);
+
+    // Assert: Name and Crop Type should NOT have changed
+    $this->assertDatabaseHas('fields', [
+        'id' => $field->id,
+        'name' => 'Original Name',
+        'crop_type' => 'Original Crop',
+        'current_stage' => 'growing',
+        'notes' => 'Updated notes'
+    ]);
+}
+
 }
