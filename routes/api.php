@@ -10,7 +10,12 @@ Route::post('/login', [AuthController::class, 'login']);
 // Protected routes (will require Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // --- Field Management Routes ---
+    Route::get('/fields', [FieldController::class, 'index']);
+    Route::post('/fields', [FieldController::class, 'store']);
     Route::patch('/fields/{field}', [FieldController::class, 'update']);
+    Route::delete('/fields/{field}', [FieldController::class, 'destroy']);
 
     // Admin-only user management
    Route::prefix('admin')->group(function () {
