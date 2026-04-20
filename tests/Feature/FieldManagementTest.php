@@ -41,21 +41,21 @@ class FieldManagementTest extends TestCase
         $response = $this->actingAs($admin)->getJson('/api/fields');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(3);
+            ->assertJsonCount(3);
     }
 
     public function test_agent_can_only_see_assigned_fields(): void
     {
         $agent1 = User::factory()->create(['role' => 'field_agent']);
         $agent2 = User::factory()->create(['role' => 'field_agent']);
-        
+
         \App\Models\Field::factory()->create(['agent_id' => $agent1->id]);
         \App\Models\Field::factory()->create(['agent_id' => $agent2->id]);
 
         $response = $this->actingAs($agent1)->getJson('/api/fields');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(1); // Should only see their own field
+            ->assertJsonCount(1); // Should only see their own field
     }
 
     public function test_admin_can_delete_a_field(): void
@@ -64,9 +64,9 @@ class FieldManagementTest extends TestCase
         $field = \App\Models\Field::factory()->create();
 
         $this->actingAs($admin)->deleteJson("/api/fields/{$field->id}")
-             ->assertStatus(200);
+            ->assertStatus(200);
 
-        $this->assertDatabaseMissing('fields', ['id' => $field->id]);
+        $this->assertSoftDeleted('fields', ['id' => $field->id]);
     }
 
     public function test_admin_can_create_field_without_assigning_agent(): void
@@ -88,31 +88,51 @@ class FieldManagementTest extends TestCase
     }
 
     public function test_agent_cannot_edit_restricted_fields(): void
-{
-    // Arrange: Create agent and a field
-    $agent = User::factory()->create(['role' => 'field_agent']);
-    $field = \App\Models\Field::factory()->create([
-        'agent_id' => $agent->id,
-        'name' => 'Original Name',
-        'crop_type' => 'Original Crop'
-    ]);
+    {
+        // Arrange: Create agent and a field
+        $agent = User::factory()->create(['role' => 'field_agent']);
+        $field = \App\Models\Field::factory()->create([
+            'agent_id' => $agent->id,
+            'name' => 'Original Name',
+            'crop_type' => 'Original Crop'
+        ]);
 
-    // Act: Agent attempts to change name and crop_type
-    $this->actingAs($agent)->patchJson("/api/fields/{$field->id}", [
-        'name' => 'Hacked Name',
-        'crop_type' => 'Hacked Crop',
-        'current_stage' => 'growing', // Allowed
-        'notes' => 'Updated notes'     // Allowed
-    ]);
+        // Act: Agent attempts to change name and crop_type
+        $this->actingAs($agent)->patchJson("/api/fields/{$field->id}", [
+            'name' => 'Hacked Name',
+            'crop_type' => 'Hacked Crop',
+            'current_stage' => 'growing', // Allowed
+            'notes' => 'Updated notes'     // Allowed
+        ]);
 
-    // Assert: Name and Crop Type should NOT have changed
-    $this->assertDatabaseHas('fields', [
-        'id' => $field->id,
-        'name' => 'Original Name',
-        'crop_type' => 'Original Crop',
-        'current_stage' => 'growing',
-        'notes' => 'Updated notes'
-    ]);
-}
+        // Assert: Name and Crop Type should NOT have changed
+        $this->assertDatabaseHas('fields', [
+            'id' => $field->id,
+            'name' => 'Original Name',
+            'crop_type' => 'Original Crop',
+            'current_stage' => 'growing',
+            'notes' => 'Updated notes'
+        ]);
+    }
 
+    public function test_field_status_computation(): void
+    {
+        // 1. Test "Completed"
+        $field1 = \App\Models\Field::factory()->create(['current_stage' => 'harvested']);
+        $this->assertEquals('Completed', $field1->status);
+
+        // 2. Test "At Risk" (Old date)
+        $field2 = \App\Models\Field::factory()->create([
+            'current_stage' => 'growing',
+            'updated_at' => now()->subDays(20) // Older than 14 days
+        ]);
+        $this->assertEquals('At Risk', $field2->status);
+
+        // 3. Test "Active" (Recent date)
+        $field3 = \App\Models\Field::factory()->create([
+            'current_stage' => 'growing',
+            'updated_at' => now()->subDays(2) // Within 14 days
+        ]);
+        $this->assertEquals('Active', $field3->status);
+    }
 }

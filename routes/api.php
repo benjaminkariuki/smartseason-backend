@@ -23,5 +23,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/agents', [\App\Http\Controllers\Api\Admin\UserController::class, 'store']);
         Route::patch('/agents/{user}/status', [\App\Http\Controllers\Api\Admin\UserController::class, 'updateStatus']);
     });
-    // We will add Field management routes here in the NEXT step
+
+// Admin Dashboard - Now strictly protected
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin/dashboard')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\Admin\DashboardController::class, 'index']);
+});
+
+// Agent Dashboard - Still authenticated, no admin check needed
+Route::middleware(['auth:sanctum'])->prefix('agent/dashboard')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\Agent\DashboardController::class, 'index']);
+});
+
+
 });

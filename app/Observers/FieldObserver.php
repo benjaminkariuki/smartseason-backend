@@ -54,14 +54,15 @@ class FieldObserver
         //
     }
 
-    private function logChange($field, $fieldChanged, $old, $new)
-    {
-        FieldHistory::create([
-            'field_id' => $field->id,
-            'user_id' => Auth::id(), // Records who performed the action
-            'field_changed' => $fieldChanged,
-            'old_value' => $old,
-            'new_value' => $new,
-        ]);
-    }
+   private function logChange($field, $fieldChanged, $old, $new)
+{
+    \App\Models\FieldHistory::create([
+        'field_id' => $field->id,
+        // If Auth::id() is null, this will now save as null instead of crashing
+        'user_id' => \Illuminate\Support\Facades\Auth::id(), 
+        'field_changed' => $fieldChanged,
+        'old_value' => $old,
+        'new_value' => $new,
+    ]);
+}
 }
