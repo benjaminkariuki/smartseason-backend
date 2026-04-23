@@ -40,7 +40,7 @@ Follow these steps to configure and run the Laravel API locally.
 
 ### 1. Clone & Install
 ```bash
-git clone <your-backend-repo-url>
+git clone https://github.com/benjaminkariuki/smartseason-backend.git
 cd smart-seasons-backend
 
 # Install PHP dependencies
