@@ -6,9 +6,16 @@ use Illuminate\Support\Facades\Route;
 
 // Public route
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // Protected routes (will require Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
+
+Route::get('/user', function (\Illuminate\Http\Request $request) {
+        return $request->user();
+    });
+    
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // --- Field Management Routes ---
@@ -19,9 +26,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin-only user management
    Route::prefix('admin')->group(function () {
+        Route::get('/users/all', [\App\Http\Controllers\Api\Admin\UserController::class, 'getAllUsers']); 
         Route::get('/agents', [\App\Http\Controllers\Api\Admin\UserController::class, 'index']);
         Route::post('/agents', [\App\Http\Controllers\Api\Admin\UserController::class, 'store']);
         Route::patch('/agents/{user}/status', [\App\Http\Controllers\Api\Admin\UserController::class, 'updateStatus']);
+        Route::get('/agents/active', [\App\Http\Controllers\Api\Admin\UserController::class, 'getActiveAgents']);
     });
 
 // Admin Dashboard - Now strictly protected

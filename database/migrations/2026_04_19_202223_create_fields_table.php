@@ -13,8 +13,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('crop_type');
             $table->date('planting_date');
-            $table->enum('current_stage', ['planted', 'growing', 'ready', 'harvested'])->default('planted');
-            $table->foreignId('agent_id')->constrained('users')->onDelete('cascade');
+$table->enum('current_stage', ['preparation', 'planted', 'growing', 'ready', 'harvested'])->default('preparation');            $table->foreignId('agent_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

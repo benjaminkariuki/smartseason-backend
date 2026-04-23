@@ -4,6 +4,7 @@ namespace App\Providers;
 
 // use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Auth\Notifications\ResetPassword;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -22,5 +23,9 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+        ResetPassword::createUrlUsing(function (object $notifiable, string $token) {
+        // This directs the user back to your React app's reset page
+        return config('app.frontend_url')."/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
+    });
     }
 }
