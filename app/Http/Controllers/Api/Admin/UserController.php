@@ -28,17 +28,20 @@ class UserController extends Controller
     }
 
 public function store(Request $request) {
+        // 1. Add 'role' to the validation array
         $data = $request->validate([
             'name' => 'required|string',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
+            'role' => 'required|string|in:admin,field_agent' 
         ]);
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => 'field_agent',
+            // 2. Use the validated role instead of hardcoding
+            'role' => $data['role'], 
             'is_active' => true
         ]);
 
@@ -51,6 +54,7 @@ public function store(Request $request) {
                 <ul>
                     <li><strong>Email:</strong> {$user->email}</li>
                     <li><strong>Password:</strong> {$data['password']}</li>
+                    <li style='text-transform: capitalize;'><strong>Role:</strong> " . str_replace('_', ' ', $data['role']) . "</li>
                 </ul>
                 <p><em>Please log in and change this password immediately.</em></p>
             ";
