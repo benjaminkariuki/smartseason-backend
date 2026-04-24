@@ -82,3 +82,7 @@ AGENT_3_PASSWORD="secureAgentPassword3!"
 php artisan key:generate
 php artisan migrate --seed
 php artisan serve
+
+
+
+DEPLOYMENT LINK:  https://smartseason-mauve.vercel.app/
