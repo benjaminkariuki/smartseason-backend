@@ -14,8 +14,8 @@ Built with an emphasis on "Integrity & Engineering," this backend prioritizes da
 
 ## 🏗 Architecture & Design Decisions
 
-### 1. Cookie-Based Sanctum Authentication
-Instead of relying on standard bearer tokens stored in `localStorage` (which are vulnerable to XSS attacks), this API is configured to use Laravel Sanctum's SPA authentication pattern. It utilizes secure, HTTP-only cookies. This ensures seamless and highly secure session management between the backend and the React frontend.
+### 1. Stateless Token Authentication (Laravel Sanctum)
+This API utilizes Laravel Sanctum to provide robust, stateless API token authentication. Upon successful login, the server issues a secure API token. The React frontend stores this token and attaches it to all subsequent protected requests via the `Authorization: Bearer <token>` HTTP header. This fully decoupled architecture bypasses strict third-party browser cookie restrictions (ITP), ensuring seamless and reliable cross-domain communication between independent frontend and backend hosting environments.
 
 ### 2. Role-Based Access Control (RBAC) via Middleware
 Security and data scoping are enforced at the route level using custom middleware. The system defines strict boundaries between:
