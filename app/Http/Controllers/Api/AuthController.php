@@ -14,7 +14,9 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+   
+
+public function login(Request $request)
     {
         $request->validate([
             'email'    => 'required|email',
@@ -35,11 +37,8 @@ class AuthController extends Controller
             ], 403);
         }
 
-        //Log the user in via session (no token created)
-        Auth::login($user);
-
-        // Regenerate session to prevent session fixation attacks
-        $request->session()->regenerate();
+        // Generate a secure plain-text token
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'user' => [
@@ -48,16 +47,14 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'role'  => $user->role,
             ],
+            'token' => $token // Send the token payload to React
         ]);
     }
 
-    public function logout(Request $request)
+  public function logout(Request $request)
     {
-        //Session-based logout — no token to delete
-        Auth::logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // Revoke the token that was used to authenticate the current request
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logged out successfully']);
     }
